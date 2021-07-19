@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM winery/basic-image:latest
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 

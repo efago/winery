@@ -19,3 +19,4 @@ docker build -t winery/training-image:latest base_images/training
 
 docker build -t winery/train-model:$VERSION train_model
 docker build -t winery/evaluate-model:$VERSION evaluate_model
+docker build -t winery/predict-model:$VERSION predict_model

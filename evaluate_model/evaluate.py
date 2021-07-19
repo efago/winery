@@ -33,7 +33,7 @@ def generate_report( saved_model, out_dir):
     train_mean = train_y.mean()
 
     xgb_model = xgb.Booster()
-    xgb_model.load_model(saved_model)
+    xgb_model.load_model(Path(saved_model) / 'xgb_model.model')
     preds = xgb_model.predict(xgb.DMatrix(test_x))
     rmse = np.sqrt( np.mean( np.square(preds - test_y)))
     
@@ -56,7 +56,7 @@ def generate_report( saved_model, out_dir):
     plot_preds_per_point(test_pred, out_dir)
     spreadsheet_worst_preds(test_pred, test_x, out_dir)
 
-    flag= Path( out_dir) / '.SUCCESS'
+    flag= Path(out_dir) / '.SUCCESS'
     flag.touch()
 
 

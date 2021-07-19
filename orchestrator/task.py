@@ -107,6 +107,7 @@ class ProcessDatasets(DockerTask):
 class TrainModel(DockerTask):
 
     out_dir = luigi.Parameter(default='/usr/share/data/model/')
+    in_dir_raw = luigi.Parameter(default='/usr/share/data/raw/')
 
     @property
     def image(self):
@@ -119,19 +120,20 @@ class TrainModel(DockerTask):
     def command(self):
         return [
             'python', 'train.py',
-            '--inp-dir', self.input().path,
+            '--in-dir-processed', self.input().path,
+            '--in-dir-raw', self.in_dir_raw,
             '--out-dir', self.out_dir
         ]
 
     def output(self):
         return luigi.LocalTarget(
-            path=str(Path(self.out_dir) / \
-                'xgb_model.model')
+            path= str(Path(self.out_dir) / '.SUCCESS')
         )
 
 
 class EvaluateModel(DockerTask):
 
+    model_dir = luigi.Parameter(default='/usr/share/data/model/')
     out_dir = luigi.Parameter(default='/usr/share/data/evaluation/')
 
     @property
@@ -145,11 +147,39 @@ class EvaluateModel(DockerTask):
     def command(self):
         return [
             'python', 'evaluate.py',
-            '--saved-model', self.input().path,
+            '--saved-model', self.model_dir,
             '--out-dir', self.out_dir
         ]
 
     def output(self):
         return luigi.LocalTarget(
             path= str(Path(self.out_dir) / '.SUCCESS')
+        )
+
+
+class PredictModel(DockerTask):
+
+    model_dir = luigi.Parameter(default='/usr/share/data/model/')
+    out_dir = luigi.Parameter(default='/usr/share/data/prediction/')
+    in_data = luigi.Parameter(default='/usr/share/data/test/test.csv')
+
+    @property
+    def image(self):
+        return f'winery/predict-model:{VERSION}'
+
+    def requires(self):
+        return EvaluateModel()
+
+    @property
+    def command(self):
+        return [
+            'python', 'predict.py',
+            '--saved-model', self.model_dir,
+            '--in-dir', self.in_data,
+            '--out-dir', self.out_dir
+        ]
+
+    def output(self):
+        return luigi.LocalTarget(
+            path= str(Path(self.out_dir) / 'predictions.csv')
         )
